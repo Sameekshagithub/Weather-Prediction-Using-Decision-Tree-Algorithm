@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>🌤️ Weather Play Predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ══════════════════════════════════════════════════
+   CSS VARIABLES — Light-Pink Blossom Theme
+══════════════════════════════════════════════════ */
+:root{
+  --pink-50:#fff0f5;
+  --pink-100:#fce4ec;
+  --pink-200:#f8bbd0;
+  --pink-300:#f48fb1;
+  --pink-400:#f06292;
+  --pink-500:#e91e8c;
+  --pink-600:#c2185b;
+  --pink-700:#880e4f;
+  --green-light:#e8f5e9;
+  --green:#66bb6a;
+  --red-light:#fce4ec;
+  --white:#ffffff;
+  --text-dark:#3d001f;
+  --text-mid:#7c1049;
+  --shadow-pink:0 4px 24px rgba(233,30,140,.15);
+  --shadow-card:0 2px 16px rgba(200,0,80,.10);
+  --radius:18px;
+  --radius-sm:10px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--pink-50);
+  color:var(--text-dark);
+  min-height:100vh;
+}
+
+/* ══════════════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════════════ */
+header{
+  background:linear-gradient(135deg,#fce4ec 0%,#f8bbd0 50%,#fce4ec 100%);
+  border-bottom:2px solid var(--pink-200);
+  padding:32px 0 28px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+header::before{
+  content:'';
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 80% 50%,rgba(244,143,177,.3) 0%,transparent 60%),
+             radial-gradient(circle at 20% 50%,rgba(240,98,146,.2) 0%,transparent 55%);
+  pointer-events:none;
+}
+.header-emoji{font-size:3.2rem;display:block;margin-bottom:8px;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+header h1{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(2rem,5vw,3.2rem);
+  font-weight:900;
+  color:var(--pink-700);
+  letter-spacing:-1px;
+  line-height:1.1;
+}
+header p{
+  color:var(--text-mid);
+  font-size:1.05rem;
+  font-weight:400;
+  margin-top:6px;
+  opacity:.85;
+}
+
+/* ══════════════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════════════ */
+.container{max-width:1200px;margin:0 auto;padding:0 24px;}
+
+/* ── Metric strip ── */
+.metrics{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:16px;
+  padding:32px 0 0;
+}
+.metric-card{
+  background:var(--white);
+  border-radius:var(--radius);
+  border:1.5px solid var(--pink-200);
+  padding:20px 18px;
+  text-align:center;
+  box-shadow:var(--shadow-card);
+  transition:transform .2s,box-shadow .2s;
+}
+.metric-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-pink);}
+.metric-value{
+  font-family:'Playfair Display',serif;
+  font-size:2rem;
+  font-weight:700;
+  color:var(--pink-600);
+  line-height:1;
+}
+.metric-label{
+  font-size:.78rem;
+  font-weight:500;
+  color:var(--text-mid);
+  margin-top:4px;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+}
+
+/* ══════════════════════════════════════════════════
+   MAIN GRID
+══════════════════════════════════════════════════ */
+.main-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+  margin:28px 0;
+}
+@media(max-width:768px){.main-grid{grid-template-columns:1fr;}}
+
+/* ── Cards ── */
+.card{
+  background:var(--white);
+  border-radius:var(--radius);
+  border:1.5px solid var(--pink-200);
+  padding:28px;
+  box-shadow:var(--shadow-card);
+}
+.card-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.3rem;
+  color:var(--pink-700);
+  margin-bottom:20px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* ══════════════════════════════════════════════════
+   PREDICTION FORM
+══════════════════════════════════════════════════ */
+.form-group{margin-bottom:18px;}
+.form-group label{
+  display:block;
+  font-weight:600;
+  font-size:.88rem;
+  color:var(--text-mid);
+  margin-bottom:6px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+.form-group select{
+  width:100%;
+  padding:12px 16px;
+  border-radius:var(--radius-sm);
+  border:1.5px solid var(--pink-200);
+  background:var(--pink-50);
+  color:var(--text-dark);
+  font-family:'DM Sans',sans-serif;
+  font-size:.95rem;
+  font-weight:500;
+  cursor:pointer;
+  outline:none;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c2185b' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  transition:border-color .2s,box-shadow .2s;
+}
+.form-group select:focus{
+  border-color:var(--pink-400);
+  box-shadow:0 0 0 3px rgba(233,30,140,.12);
+}
+
+.predict-btn{
+  width:100%;
+  padding:15px;
+  background:linear-gradient(135deg,var(--pink-500),var(--pink-400));
+  color:#fff;
+  border:none;
+  border-radius:40px;
+  font-family:'DM Sans',sans-serif;
+  font-size:1.05rem;
+  font-weight:700;
+  letter-spacing:.4px;
+  cursor:pointer;
+  box-shadow:0 6px 20px rgba(233,30,140,.35);
+  transition:all .25s;
+  margin-top:8px;
+}
+.predict-btn:hover{
+  background:linear-gradient(135deg,var(--pink-600),var(--pink-500));
+  box-shadow:0 8px 28px rgba(233,30,140,.50);
+  transform:translateY(-2px);
+}
+.predict-btn:active{transform:translateY(0);}
+
+/* ══════════════════════════════════════════════════
+   RESULT BOX
+══════════════════════════════════════════════════ */
+.result-area{margin-top:22px;}
+.result-box{
+  border-radius:var(--radius);
+  padding:28px 22px;
+  text-align:center;
+  display:none;
+  animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.9);}to{opacity:1;transform:scale(1);}}
+.result-box.show{display:block;}
+.result-yes{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid var(--green);}
+.result-no {background:linear-gradient(135deg,var(--red-light),var(--pink-200));border:2px solid var(--pink-400);}
+.result-icon{font-size:3rem;display:block;margin-bottom:8px;}
+.result-text{
+  font-family:'Playfair Display',serif;
+  font-size:1.6rem;
+  font-weight:700;
+  color:var(--text-dark);
+  line-height:1.2;
+}
+.result-sub{
+  font-size:.9rem;
+  color:var(--text-mid);
+  margin-top:6px;
+  font-weight:400;
+}
+.confidence-badge{
+  display:inline-block;
+  margin-top:12px;
+  background:rgba(255,255,255,.7);
+  border-radius:20px;
+  padding:5px 16px;
+  font-size:.85rem;
+  font-weight:600;
+  color:var(--pink-700);
+}
+
+/* Probability bars */
+.prob-bars{margin-top:16px;}
+.prob-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.prob-label{font-size:.82rem;font-weight:600;color:var(--text-mid);width:32px;}
+.prob-track{
+  flex:1;
+  height:10px;
+  background:var(--pink-100);
+  border-radius:6px;
+  overflow:hidden;
+}
+.prob-fill{
+  height:100%;
+  border-radius:6px;
+  transition:width .6s ease;
+}
+.prob-fill.yes{background:var(--green);}
+.prob-fill.no {background:var(--pink-400);}
+.prob-pct{font-size:.82rem;font-weight:600;color:var(--text-mid);width:38px;text-align:right;}
+
+/* ══════════════════════════════════════════════════
+   STATS PANEL (right column)
+══════════════════════════════════════════════════ */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.stat-pill{
+  background:var(--pink-50);
+  border-radius:var(--radius-sm);
+  border:1px solid var(--pink-200);
+  padding:14px 12px;
+  text-align:center;
+}
+.stat-pill .val{
+  font-family:'Playfair Display',serif;
+  font-size:1.4rem;
+  color:var(--pink-600);
+  font-weight:700;
+}
+.stat-pill .lbl{font-size:.75rem;color:var(--text-mid);font-weight:500;margin-top:2px;}
+
+/* Feature importance bars */
+.feat-bars{margin-top:4px;}
+.feat-row{margin-bottom:12px;}
+.feat-header{display:flex;justify-content:space-between;margin-bottom:4px;}
+.feat-name{font-size:.85rem;font-weight:600;color:var(--text-mid);}
+.feat-pct{font-size:.85rem;font-weight:700;color:var(--pink-600);}
+.feat-track{height:8px;background:var(--pink-100);border-radius:6px;overflow:hidden;}
+.feat-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--pink-300),var(--pink-500));transition:width .8s ease;}
+
+/* ══════════════════════════════════════════════════
+   DATASET TABLE
+══════════════════════════════════════════════════ */
+.section-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.4rem;
+  color:var(--pink-700);
+  margin:36px 0 16px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.table-wrap{
+  background:var(--white);
+  border-radius:var(--radius);
+  border:1.5px solid var(--pink-200);
+  overflow:hidden;
+  box-shadow:var(--shadow-card);
+}
+table{width:100%;border-collapse:collapse;font-size:.88rem;}
+thead tr{background:linear-gradient(135deg,var(--pink-200),var(--pink-300));}
+thead th{
+  padding:13px 16px;
+  text-align:left;
+  font-weight:700;
+  color:var(--pink-700);
+  letter-spacing:.3px;
+  font-size:.82rem;
+  text-transform:uppercase;
+}
+tbody tr{border-bottom:1px solid var(--pink-100);transition:background .15s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--pink-50);}
+td{padding:11px 16px;font-weight:400;color:var(--text-dark);}
+.badge{
+  display:inline-block;
+  padding:3px 12px;
+  border-radius:20px;
+  font-size:.78rem;
+  font-weight:700;
+}
+.badge-yes{background:#e8f5e9;color:#2e7d32;}
+.badge-no {background:#fce4ec;color:#c2185b;}
+
+/* ══════════════════════════════════════════════════
+   CONFUSION MATRIX & REPORT
+══════════════════════════════════════════════════ */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:0 0 32px;}
+@media(max-width:680px){.two-col{grid-template-columns:1fr;}}
+
+.cm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.cm-cell{
+  border-radius:var(--radius-sm);
+  padding:18px;
+  text-align:center;
+  font-family:'Playfair Display',serif;
+}
+.cm-cell .num{font-size:2rem;font-weight:700;display:block;}
+.cm-cell .lbl{font-size:.72rem;font-weight:500;margin-top:2px;}
+.cm-tp{background:#c8e6c9;color:#1b5e20;}
+.cm-fn{background:#ffcdd2;color:#b71c1c;}
+.cm-fp{background:#ffcdd2;color:#b71c1c;}
+.cm-tn{background:#c8e6c9;color:#1b5e20;}
+
+.report-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--pink-100);font-size:.87rem;}
+.report-row:last-child{border-bottom:none;}
+.report-cls{font-weight:600;color:var(--pink-700);}
+.report-vals{display:flex;gap:18px;}
+.report-val{text-align:center;}
+.report-val .v{display:block;font-weight:700;color:var(--text-dark);}
+.report-val .k{font-size:.72rem;color:var(--text-mid);}
+
+/* ══════════════════════════════════════════════════
+   LOADING SPINNER
+══════════════════════════════════════════════════ */
+.spinner{
+  display:none;
+  width:22px;height:22px;
+  border:3px solid rgba(255,255,255,.4);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  margin:0 auto;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ══════════════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════════════ */
+footer{
+  text-align:center;
+  padding:28px 0 32px;
+  color:var(--text-mid);
+  font-size:.85rem;
+  border-top:1.5px solid var(--pink-200);
+  margin-top:40px;
+}
+footer span{color:var(--pink-500);}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="container">
+    <span class="header-emoji">🌤️</span>
+    <h1>Weather Play Predictor</h1>
+    <p>Decision Tree Classifier &nbsp;·&nbsp; Predict outdoor play conditions</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ══ METRICS ══ -->
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="metric-value">{{ accuracy }}%</div>
+      <div class="metric-label">🎯 Test Accuracy</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{ train_accuracy }}%</div>
+      <div class="metric-label">📚 Train Accuracy</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{ total_records }}</div>
+      <div class="metric-label">📋 Records</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{ tree_depth }}</div>
+      <div class="metric-label">🌳 Tree Depth</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{ leaves }}</div>
+      <div class="metric-label">🍃 Leaves</div>
+    </div>
+  </div>
+
+  <!-- ══ MAIN GRID ══ -->
+  <div class="main-grid" style="margin-top:28px;">
+
+    <!-- LEFT — Prediction Form -->
+    <div class="card">
+      <div class="card-title">☀️ Make a Prediction</div>
+
+      <div class="form-group">
+        <label>🌦️ Outlook</label>
+        <select id="outlook">
+          <option value="Sunny">☀️ Sunny</option>
+          <option value="Overcast">⛅ Overcast</option>
+          <option value="Rainy">🌧️ Rainy</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>🌡️ Temperature</label>
+        <select id="temperature">
+          <option value="Hot">🌡️ Hot</option>
+          <option value="Mild">🌤️ Mild</option>
+          <option value="Cool">❄️ Cool</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>💧 Humidity</label>
+        <select id="humidity">
+          <option value="High">💧 High</option>
+          <option value="Normal">🌊 Normal</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>🌬️ Wind</label>
+        <select id="wind">
+          <option value="Weak">🍃 Weak</option>
+          <option value="Strong">🌬️ Strong</option>
+        </select>
+      </div>
+
+      <button class="predict-btn" id="predictBtn" onclick="predict()">
+        <span id="btnText">🔮 Predict Now!</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
+
+      <!-- Result -->
+      <div class="result-area">
+        <div class="result-box" id="resultBox">
+          <span class="result-icon" id="resultIcon"></span>
+          <div class="result-text" id="resultText"></div>
+          <div class="result-sub" id="resultSub"></div>
+          <div class="confidence-badge" id="confBadge"></div>
+          <div class="prob-bars" id="probBars"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT — Model Stats -->
+    <div class="card">
+      <div class="card-title">📊 Model Statistics</div>
+
+      <div class="stat-grid">
+        <div class="stat-pill">
+          <div class="val">Entropy</div>
+          <div class="lbl">Criterion</div>
+        </div>
+        <div class="stat-pill">
+          <div class="val">4</div>
+          <div class="lbl">Max Depth</div>
+        </div>
+        <div class="stat-pill">
+          <div class="val">80/20</div>
+          <div class="lbl">Train/Test Split</div>
+        </div>
+        <div class="stat-pill">
+          <div class="val">DT</div>
+          <div class="lbl">Algorithm</div>
+        </div>
+      </div>
+
+      <div class="card-title" style="margin-top:4px;font-size:1.1rem;">🔍 Feature Importance</div>
+      <div class="feat-bars">
+        {% set fi_sorted = importances|dictsort(by='value',reverse=True) %}
+        {% for feat, imp in fi_sorted %}
+        <div class="feat-row">
+          <div class="feat-header">
+            <span class="feat-name">{{ feat }}</span>
+            <span class="feat-pct">{{ (imp * 100)|round(1) }}%</span>
+          </div>
+          <div class="feat-track">
+            <div class="feat-fill" style="width:{{ (imp*100)|round(1) }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CONFUSION MATRIX + CLASSIFICATION REPORT ══ -->
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">🟥 Confusion Matrix</div>
+      {% set cm = confusion_matrix %}
+      <div style="font-size:.8rem;color:var(--text-mid);margin-bottom:10px;">Rows = Actual &nbsp;|&nbsp; Cols = Predicted</div>
+      <div class="cm-grid">
+        <div class="cm-cell cm-tn">
+          <span class="num">{{ cm[0][0] }}</span>
+          <span class="lbl">True Negative</span>
+        </div>
+        <div class="cm-cell cm-fp">
+          <span class="num">{{ cm[0][1] }}</span>
+          <span class="lbl">False Positive</span>
+        </div>
+        <div class="cm-cell cm-fn">
+          <span class="num">{{ cm[1][0] }}</span>
+          <span class="lbl">False Negative</span>
+        </div>
+        <div class="cm-cell cm-tp">
+          <span class="num">{{ cm[1][1] }}</span>
+          <span class="lbl">True Positive</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📈 Classification Report</div>
+      {% for cls in ['No','Yes'] %}
+      {% if cls in classification_report %}
+      {% set r = classification_report[cls] %}
+      <div class="report-row">
+        <span class="report-cls">{{ '❌ No' if cls=='No' else '✅ Yes' }}</span>
+        <div class="report-vals">
+          <div class="report-val">
+            <span class="v">{{ (r.precision*100)|round(0)|int }}%</span>
+            <span class="k">Precision</span>
+          </div>
+          <div class="report-val">
+            <span class="v">{{ (r.recall*100)|round(0)|int }}%</span>
+            <span class="k">Recall</span>
+          </div>
+          <div class="report-val">
+            <span class="v">{{ (r['f1-score']*100)|round(0)|int }}%</span>
+            <span class="k">F1</span>
+          </div>
+          <div class="report-val">
+            <span class="v">{{ r.support|int }}</span>
+            <span class="k">Support</span>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% endfor %}
+      {% if 'accuracy' in classification_report %}
+      <div class="report-row" style="border-top:2px solid var(--pink-200);margin-top:6px;padding-top:10px;">
+        <span class="report-cls" style="color:var(--pink-600);">Overall Accuracy</span>
+        <div class="report-vals">
+          <div class="report-val">
+            <span class="v" style="color:var(--pink-600);">{{ (classification_report.accuracy*100)|round(1) }}%</span>
+            <span class="k">Score</span>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ══ DATASET TABLE ══ -->
+  <div class="section-title">📋 Weather Dataset</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>🌦️ Outlook</th>
+          <th>🌡️ Temperature</th>
+          <th>💧 Humidity</th>
+          <th>🌬️ Wind</th>
+          <th>🎮 Play</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in dataset %}
+        <tr>
+          <td style="color:var(--pink-300);font-weight:600;">{{ loop.index }}</td>
+          <td>
+            {% if row.Outlook == 'Sunny' %}☀️{% elif row.Outlook == 'Rainy' %}🌧️{% else %}⛅{% endif %}
+            {{ row.Outlook }}
+          </td>
+          <td>
+            {% if row.Temperature == 'Hot' %}🌡️{% elif row.Temperature == 'Cool' %}❄️{% else %}🌤️{% endif %}
+            {{ row.Temperature }}
+          </td>
+          <td>{% if row.Humidity == 'High' %}💧{% else %}🌊{% endif %} {{ row.Humidity }}</td>
+          <td>{% if row.Wind == 'Strong' %}🌬️{% else %}🍃{% endif %} {{ row.Wind }}</td>
+          <td>
+            <span class="badge {{ 'badge-yes' if row.Play=='Yes' else 'badge-no' }}">
+              {{ '✅ Yes' if row.Play=='Yes' else '❌ No' }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  <div class="container">
+    🌸 Weather Play Predictor &nbsp;·&nbsp; Built with
+    <span>Python · Flask · Scikit-learn</span> &nbsp;·&nbsp; Port 3000 🌸
+  </div>
+</footer>
+
+<script>
+async function predict() {
+  const btn     = document.getElementById('predictBtn');
+  const btnText = document.getElementById('btnText');
+  const spinner = document.getElementById('spinner');
+  const box     = document.getElementById('resultBox');
+
+  // Show loading
+  btnText.style.display = 'none';
+  spinner.style.display = 'block';
+  btn.disabled = true;
+  box.classList.remove('show');
+
+  const payload = {
+    outlook:     document.getElementById('outlook').value,
+    temperature: document.getElementById('temperature').value,
+    humidity:    document.getElementById('humidity').value,
+    wind:        document.getElementById('wind').value
+  };
+
+  try {
+    const res  = await fetch('/predict', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error);
+
+    const isYes = data.result === 'Yes';
+    box.className = 'result-box show ' + (isYes ? 'result-yes' : 'result-no');
+
+    document.getElementById('resultIcon').textContent = isYes ? '✅' : '❌';
+    document.getElementById('resultText').textContent =
+      isYes ? 'Yes — Go Play Outside!' : 'No — Stay Inside!';
+    document.getElementById('resultSub').textContent =
+      isYes ? '🎉 Perfect weather conditions detected!' : '🏠 Weather is not suitable today.';
+    document.getElementById('confBadge').textContent =
+      `Confidence: ${data.confidence}%`;
+
+    // Probability bars
+    const probs = data.probabilities;
+    const pbHTML = Object.entries(probs).map(([cls, pct]) => `
+      <div class="prob-row">
+        <span class="prob-label">${cls}</span>
+        <div class="prob-track">
+          <div class="prob-fill ${cls.toLowerCase()}" style="width:${pct}%"></div>
+        </div>
+        <span class="prob-pct">${pct}%</span>
+      </div>
+    `).join('');
+    document.getElementById('probBars').innerHTML = pbHTML;
+
+  } catch(err) {
+    box.className = 'result-box show result-no';
+    document.getElementById('resultIcon').textContent = '⚠️';
+    document.getElementById('resultText').textContent = 'Error!';
+    document.getElementById('resultSub').textContent = err.message;
+    document.getElementById('confBadge').textContent = '';
+    document.getElementById('probBars').innerHTML = '';
+  } finally {
+    btnText.style.display = 'inline';
+    spinner.style.display = 'none';
+    btn.disabled = false;
+  }
+}
+
+// Allow Enter key on selects
+document.querySelectorAll('select').forEach(s =>
+  s.addEventListener('keydown', e => { if(e.key==='Enter') predict(); })
+);
+</script>
+</body>
+</html>
